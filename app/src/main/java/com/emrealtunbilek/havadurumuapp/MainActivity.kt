@@ -5,10 +5,7 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.Adapter
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.Toast
+import android.widget.*
 import com.android.volley.Request
 import com.android.volley.Response
 import com.android.volley.VolleyError
@@ -16,6 +13,7 @@ import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.StringRequest
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.spinner_tek_satir.*
+import kotlinx.android.synthetic.main.spinner_tek_satir.view.*
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
@@ -23,11 +21,15 @@ import java.util.*
 
 class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
+    var tvSehir:TextView? = null
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        var spinnerAdapter=ArrayAdapter.createFromResource(this,R.array.sehirler, R.layout.spinner_tek_satir)
+     var spinnerAdapter=ArrayAdapter.createFromResource(this,R.array.sehirler, R.layout.spinner_tek_satir)
+
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spnSehirler.background.setColorFilter(resources.getColor(R.color.colorAccent), PorterDuff.Mode.SRC_ATOP)
 
@@ -36,6 +38,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         spnSehirler.adapter=spinnerAdapter
 
         spnSehirler.setOnItemSelectedListener(this)
+
 
         verileriGetir("Ankara")
 
@@ -49,6 +52,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
         var secilenSehir=parent?.getItemAtPosition(position).toString()
+        tvSehir = view as TextView
         verileriGetir(secilenSehir)
     }
 
@@ -78,23 +82,20 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
                 if(icon?.last() == 'd'){
                     rootLayout.background=getDrawable(R.drawable.bg)
-
-
+                    spnSehirler.background.setColorFilter(resources.getColor(R.color.colorAccent), PorterDuff.Mode.SRC_ATOP)
+                    tvSehir?.setTextColor(resources.getColor(R.color.colorAccent))
                     tvAciklama.setTextColor(resources.getColor(R.color.colorAccent))
                     tvSicaklik.setTextColor(resources.getColor(R.color.colorAccent))
-
                     tvTarih.setTextColor(resources.getColor(R.color.colorAccent))
                     tvDerece.setTextColor(resources.getColor(R.color.colorAccent))
 
 
                 }else {
                     rootLayout.background=getDrawable(R.drawable.gece)
-
-                    text1.setTextColor(resources.getColor(R.color.colorPrimaryDark))
-
+                    tvSehir?.setTextColor(resources.getColor(R.color.colorPrimaryDark))
                     tvAciklama.setTextColor(resources.getColor(R.color.colorPrimaryDark))
                     tvSicaklik.setTextColor(resources.getColor(R.color.colorPrimaryDark))
-
+                    spnSehirler.background.setColorFilter(resources.getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP)
                     tvTarih.setTextColor(resources.getColor(R.color.colorPrimaryDark))
                     tvDerece.setTextColor(resources.getColor(R.color.colorPrimaryDark))
                 }
