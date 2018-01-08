@@ -44,6 +44,11 @@ class MainActivity : AppCompatActivity() {
                     rootLayout.background=getDrawable(R.drawable.bg)
                 }else {
                     rootLayout.background=getDrawable(R.drawable.gece)
+                    tvAciklama.setTextColor(resources.getColor(R.color.colorAccent))
+                    tvSicaklik.setTextColor(resources.getColor(R.color.colorAccent))
+                    tvSehir.setTextColor(resources.getColor(R.color.colorAccent))
+                    tvTarih.setTextColor(resources.getColor(R.color.colorAccent))
+                    tvDerece.setTextColor(resources.getColor(R.color.colorAccent))
                 }
 
                 var resimDosyaAdi=resources.getIdentifier("icon_"+icon?.sonKarakteriSil(),"drawable", packageName) //R.drawable.icon_50n
