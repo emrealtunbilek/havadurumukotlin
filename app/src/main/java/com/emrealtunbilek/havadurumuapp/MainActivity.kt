@@ -11,6 +11,7 @@ import com.android.volley.Response
 import com.android.volley.VolleyError
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.StringRequest
+import im.delight.android.location.SimpleLocation
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.spinner_tek_satir.*
 import kotlinx.android.synthetic.main.spinner_tek_satir.view.*
@@ -22,6 +23,9 @@ import java.util.*
 class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
     var tvSehir:TextView? = null
+    var location:SimpleLocation? = null
+    var latitude:String? = null
+    var longitude:String? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,10 +43,111 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
         spnSehirler.setOnItemSelectedListener(this)
 
+        location= SimpleLocation(this)
+
+        if (!location!!.hasLocationEnabled()) {
+
+            //izin istenecek
+            SimpleLocation.openSettings(this);
+        }
+
+        location?.setListener(object:SimpleLocation.Listener{
+
+            override fun onPositionChanged() {
+                latitude = String.format("%.2f", location?.getLatitude())
+                longitude = String.format("%.2f", location?.getLongitude())
+
+                Log.e("EMREEEE", ""+latitude+"  "+longitude)
+            }
+
+        })
+
+
+
 
         verileriGetir("Ankara")
+        oankiSehriGetir(latitude, longitude)
 
 
+
+    }
+
+    private fun oankiSehriGetir(lat: String?, longt:String?) {
+        val url="http://api.openweathermap.org/data/2.5/weather?lat="+lat+"&lon="+longt+"&appid=abbcd2fcfec741ec783669c98b7f39d1&lang=tr&units=metric"
+
+        val havaDurumuObjeRequest = JsonObjectRequest(Request.Method.GET, url,null, object:Response.Listener<JSONObject>{
+
+
+            override fun onResponse(response: JSONObject?) {
+
+                var main = response?.getJSONObject("main")
+                var sicaklik= main?.getInt("temp")
+                tvSicaklik.text=sicaklik.toString()
+
+
+
+                var sehirAdi = response?.getString("name")
+
+
+                var weather=response?.getJSONArray("weather")
+                var aciklama = weather?.getJSONObject(0)?.getString("description")
+                tvAciklama.text=aciklama
+
+                var icon = weather?.getJSONObject(0)?.getString("icon")
+
+                if(icon?.last() == 'd'){
+                    rootLayout.background=getDrawable(R.drawable.bg)
+                    spnSehirler.background.setColorFilter(resources.getColor(R.color.colorAccent), PorterDuff.Mode.SRC_ATOP)
+                    tvSehir?.setTextColor(resources.getColor(R.color.colorAccent))
+                    tvAciklama.setTextColor(resources.getColor(R.color.colorAccent))
+                    tvSicaklik.setTextColor(resources.getColor(R.color.colorAccent))
+                    tvTarih.setTextColor(resources.getColor(R.color.colorAccent))
+                    tvDerece.setTextColor(resources.getColor(R.color.colorAccent))
+
+
+                }else {
+                    rootLayout.background=getDrawable(R.drawable.gece)
+                    tvSehir?.setTextColor(resources.getColor(R.color.colorPrimaryDark))
+                    tvAciklama.setTextColor(resources.getColor(R.color.colorPrimaryDark))
+                    tvSicaklik.setTextColor(resources.getColor(R.color.colorPrimaryDark))
+                    spnSehirler.background.setColorFilter(resources.getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP)
+                    tvTarih.setTextColor(resources.getColor(R.color.colorPrimaryDark))
+                    tvDerece.setTextColor(resources.getColor(R.color.colorPrimaryDark))
+                }
+
+                var resimDosyaAdi=resources.getIdentifier("icon_"+icon?.sonKarakteriSil(),"drawable", packageName) //R.drawable.icon_50n
+                imgHavaDurumu.setImageResource(resimDosyaAdi)
+
+                tvTarih.text=tarihYazdir()
+
+
+
+            }
+
+
+        }, object : Response.ErrorListener{
+
+            override fun onErrorResponse(error: VolleyError?) {
+
+            }
+
+        })
+
+
+        MySingleton.getInstance(this)?.addToRequestQueue(havaDurumuObjeRequest)
+
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+        location?.beginUpdates()
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        location?.endUpdates();
 
     }
 
