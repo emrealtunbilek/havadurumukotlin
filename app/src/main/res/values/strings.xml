@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">HavaDurumuApp</string>
     <string-array name="sehirler">
+        <item>Şuanki Yer</item>
         <item>Ankara</item>
         <item>İstanbul</item>
         <item>Bursa</item>

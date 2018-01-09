@@ -16,6 +16,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.spinner_tek_satir.*
 import kotlinx.android.synthetic.main.spinner_tek_satir.view.*
 import org.json.JSONObject
+import org.w3c.dom.Text
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -43,39 +44,47 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
         spnSehirler.setOnItemSelectedListener(this)
 
-        location= SimpleLocation(this)
+
 
         if (!location!!.hasLocationEnabled()) {
 
             //izin istenecek
             SimpleLocation.openSettings(this);
+        }else {
+
+            location= SimpleLocation(this)
+            location?.setListener(object:SimpleLocation.Listener{
+
+                override fun onPositionChanged() {
+                    latitude = String.format("%.2f", location?.getLatitude())
+                    longitude = String.format("%.2f", location?.getLongitude())
+
+                    Log.e("WWW", ""+latitude+"  "+longitude)
+                }
+
+            })
+            // verileriGetir("Ankara")
+            oankiSehriGetir(latitude, longitude)
+
         }
 
-        location?.setListener(object:SimpleLocation.Listener{
-
-            override fun onPositionChanged() {
-                latitude = String.format("%.2f", location?.getLatitude())
-                longitude = String.format("%.2f", location?.getLongitude())
-
-                Log.e("EMREEEE", ""+latitude+"  "+longitude)
-            }
-
-        })
 
 
 
 
-        verileriGetir("Ankara")
-        oankiSehriGetir(latitude, longitude)
+
+
 
 
 
     }
 
-    private fun oankiSehriGetir(lat: String?, longt:String?) {
-        val url="http://api.openweathermap.org/data/2.5/weather?lat="+lat+"&lon="+longt+"&appid=abbcd2fcfec741ec783669c98b7f39d1&lang=tr&units=metric"
+    private fun oankiSehriGetir(lat: String?, longt:String?) :String? {
 
-        val havaDurumuObjeRequest = JsonObjectRequest(Request.Method.GET, url,null, object:Response.Listener<JSONObject>{
+        val url="http://api.openweathermap.org/data/2.5/weather?lat="+lat+"&lon="+longt+"&appid=abbcd2fcfec741ec783669c98b7f39d1&lang=tr&units=metric"
+        var sehirAdi: String? = "Şuanki Yer"
+
+        val havaDurumuObjeRequest2 = JsonObjectRequest(Request.Method.GET, url,null, object:Response.Listener<JSONObject>{
 
 
             override fun onResponse(response: JSONObject?) {
@@ -86,7 +95,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
 
 
-                var sehirAdi = response?.getString("name")
+                sehirAdi = response?.getString("name")
+                tvSehir?.setText(sehirAdi)
 
 
                 var weather=response?.getJSONArray("weather")
@@ -120,22 +130,25 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
                 tvTarih.text=tarihYazdir()
 
-
-
             }
 
 
-        }, object : Response.ErrorListener{
+        },
+                object : Response.ErrorListener{
 
             override fun onErrorResponse(error: VolleyError?) {
-
+                Log.e("VOLLEY HATA", ""+error?.printStackTrace())
             }
 
         })
 
 
-        MySingleton.getInstance(this)?.addToRequestQueue(havaDurumuObjeRequest)
+        MySingleton.getInstance(this)?.addToRequestQueue(havaDurumuObjeRequest2)
 
+        if(sehirAdi != null)
+        return sehirAdi
+
+        else return "N\\A"
 
     }
 
@@ -156,9 +169,29 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
     }
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-        var secilenSehir=parent?.getItemAtPosition(position).toString()
+
         tvSehir = view as TextView
-        verileriGetir(secilenSehir)
+
+        if(position == 0){
+
+            location= SimpleLocation(this)
+
+            latitude=String.format("%.6f", location?.latitude)
+            longitude=String.format("%.6f", location?.longitude)
+
+            Log.e("LAT",""+latitude)
+            Log.e("LONG",""+longitude)
+
+
+            var oankiSehirAdi = oankiSehriGetir(latitude, longitude)
+            Log.e("BURAYA GELEN SEHIR ADI:", ""+oankiSehirAdi)
+            tvSehir?.setText(oankiSehirAdi)
+        }else {
+            var secilenSehir=parent?.getItemAtPosition(position).toString()
+            tvSehir = view as TextView
+            verileriGetir(secilenSehir)
+        }
+
     }
 
     fun verileriGetir(sehir:String){
@@ -229,11 +262,13 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
     fun tarihYazdir():String{
 
-        var takvim=Calendar.getInstance().time
-        var formatlayici=SimpleDateFormat("EEEE, MMMM yyyy", Locale("tr"))
-        var tarih=formatlayici.format(takvim)
+        var takvim = Calendar.getInstance().time
+        var formatlayici = SimpleDateFormat("EEE, MMM yyyy", Locale("tr"))
+        var tarih = formatlayici.format(takvim)
 
         return tarih
+
+
 
 
     }
